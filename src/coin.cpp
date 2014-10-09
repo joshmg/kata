@@ -49,7 +49,8 @@ unsigned int coin::_compute_value(const coin_type type) {
     }
 }
 
-coin::coin(const coin_type type) : _value(coin::_compute_value(type)), _type(type) {}
+coin::coin() : _value(coin::_compute_value(INVALID)), _type(INVALID) { }
+coin::coin(const coin_type type) : _value(coin::_compute_value(type)), _type(type) { }
 
 string coin::get_name() const {
     switch (_type) {

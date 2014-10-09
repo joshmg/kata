@@ -11,6 +11,7 @@ class coin {
         static unsigned int _compute_value(const coin_type);
 
         coin(const coin_type type);
+        coin(); // Invalid
 
         coin_type _type;
         const unsigned int _value;
