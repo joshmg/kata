@@ -26,6 +26,9 @@ class vending_machine {
         static std::string _item_type_to_string(const item_type);
         static item_type _string_to_item_type(const std::string&);
 
+        void _calculate_change(const unsigned int cents, unsigned int* quarters, unsigned int* dimes, unsigned int* nickels, unsigned int* pennies) const;
+        bool _can_make_change(const item_type) const;
+
         unsigned int _count_change_in_payment_storage() const;
         void _dispense_coins(const unsigned int cents);
 
@@ -40,8 +43,11 @@ class vending_machine {
         bool _display_out_of_stock;
         item_type* _last_item_type_selected;
 
+        void _init();
+
     public:
         vending_machine();
+        vending_machine(const unsigned int quarters, const unsigned int dimes, const unsigned int nickels, const unsigned int pennies);
         ~vending_machine();
 
         std::string get_display();
@@ -55,6 +61,9 @@ class vending_machine {
 
         std::list<coin*> withdraw_change();
         void withdraw_change(std::list<coin*>* wallet);
+
+        std::list<vending_item*> withdraw_items();
+        void withdraw_items(std::list<vending_item*>* bag);
 
         std::list<coin*> change_bin;
         std::list<vending_item*> item_bin;

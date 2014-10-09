@@ -6,6 +6,14 @@
 #include <list>
 using namespace std;
 
+unsigned int sum_wallet(const list<coin*>& wallet) {
+    unsigned int sum = 0;
+    for (list<coin*>::const_iterator it = wallet.begin(); it != wallet.end(); it++) {
+        sum += (*it)->get_value();
+    }
+    return sum;
+}
+
 int main() {
     coin* nickel = coin::parse("nickel");
     coin* quarter = coin::parse("quarter");
@@ -56,13 +64,16 @@ int main() {
         // wallet.push_back(coin::parse("dime"));
         // wallet.push_back(coin::parse("penny"));
     }
+    cout << "Withdrawing coins..." << endl;
     v.withdraw_change(&wallet);
+    cout << "Wallet Total: " << sum_wallet(wallet) << endl;
 
-    cout << "Selecting cola." << endl;
-    v.select_item("cola");
+    cout << "Selecting Candy." << endl;
+    v.select_item("candy");
 
     cout << "Display: " << v.get_display() << endl;
 
+    cout << "Depositing coins..." << endl;
     while (! wallet.empty()) {
         v.insert_coin(wallet.back());
         wallet.pop_back();
@@ -70,8 +81,8 @@ int main() {
 
     cout << "Display: " << v.get_display() << endl;
 
-    cout << "Selecting Cola" << endl;
-    v.select_item("cola");
+    cout << "Selecting Candy" << endl;
+    v.select_item("candy");
 
     cout << "Display: " << v.get_display() << endl;
 
@@ -80,6 +91,11 @@ int main() {
         cout << (*it)->get_name() << " ";
     }
     cout << endl;
+
+    
+    cout << "Withdrawing coins..." << endl;
+    v.withdraw_change(&wallet);
+    cout << "Wallet Total: " << sum_wallet(wallet) << endl;
 
     cout << "Items count in bin: " << v.item_bin.size() << endl;
 

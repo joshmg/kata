@@ -51,6 +51,67 @@ vending_machine::item_type vending_machine::_string_to_item_type(const string& s
     }
 }
 
+void vending_machine::_calculate_change(const unsigned int cents, unsigned int* quarters, unsigned int* dimes, unsigned int* nickels, unsigned int* pennies) const {
+    unsigned int remaining_cents = cents;
+
+    unsigned int quarters_required = remaining_cents / 25;
+    remaining_cents -= quarters_required * 25;
+
+    unsigned int dimes_required = remaining_cents / 10;
+    remaining_cents -= dimes_required * 10;
+
+    unsigned int nickels_required = remaining_cents / 5;
+    remaining_cents -= nickels_required * 5;
+
+    unsigned int pennies_required = remaining_cents;
+    remaining_cents -= pennies_required;
+
+    unsigned int quarters_available = _coin_inventory.find(QUARTER)->second.size();
+    if (quarters_required > quarters_available) {
+        // Insufficient quarters are available, so supplement with 2 dimes and 1 nickel.
+        unsigned int deficit = (quarters_required - quarters_available);
+        dimes_required +=  deficit * 2;
+        nickels_required += deficit;
+        quarters_required -= deficit; // aka: quarters_required = quarters_available
+    }
+    (*quarters) = quarters_required;
+
+    unsigned int dimes_available = _coin_inventory.find(DIME)->second.size();
+    if (dimes_required > dimes_available) {
+        // Insufficient dimes are available, so supplement with 2 nickels.
+        unsigned int deficit = (dimes_required - dimes_available);
+        nickels_required +=  deficit * 2;
+        dimes_required -= deficit; // aka: dimes_required = dimes_available
+    }
+    (*dimes) = dimes_required;
+
+    unsigned int nickels_available = _coin_inventory.find(NICKEL)->second.size();
+    if (nickels_required > nickels_available) {
+        // Insufficient nickels are available, so supplement with 5 pennies.
+        unsigned int deficit = (nickels_required - nickels_available);
+        pennies_required +=  deficit * 5;
+        pennies_required -= deficit; // aka: pennies_required = pennies_available
+    }
+    (*nickels) = nickels_required;
+
+    (*pennies) = pennies_required;
+}
+
+bool vending_machine::_can_make_change(const item_type type) const {
+    unsigned int price = _item_prices.find(type)->second;
+    unsigned int quarters, dimes, nickels, pennies;
+
+    _calculate_change(price, &quarters, &dimes, &nickels, &pennies);
+    // return (pennies > 0); // Since we're not supposed to carry pennies, this would work. But it is not proper and relies on the implementation of _calculate_change...
+
+    return (
+        quarters <= _coin_inventory.find(QUARTER)->second.size()
+        && dimes <= _coin_inventory.find(DIME)->second.size()
+        && nickels <= _coin_inventory.find(NICKEL)->second.size()
+        && pennies <= _coin_inventory.find(PENNY)->second.size()
+    );
+}
+
 unsigned int vending_machine::_count_change_in_payment_storage() const {
     unsigned int sum = 0;
     for (list<coin*>::const_iterator it = _payment_storage.begin(); it != _payment_storage.end(); it++) {
@@ -60,81 +121,88 @@ unsigned int vending_machine::_count_change_in_payment_storage() const {
 }
 
 void vending_machine::_dispense_coins(const unsigned int cents) {
-    unsigned int remaining_cents = cents;
+    unsigned int quarters, dimes, nickels, pennies;
+    _calculate_change(cents, &quarters, &dimes, &nickels, &pennies);
 
-    unsigned int quarter_count = remaining_cents / 25;
-    remaining_cents -= quarter_count * 25;
-
-    unsigned int dime_count = remaining_cents / 10;
-    remaining_cents -= dime_count * 10;
-
-    unsigned int nickel_count = remaining_cents / 5;
-    remaining_cents -= nickel_count * 5;
-
-    unsigned int penny_count = remaining_cents;
-    remaining_cents -= penny_count;
-
-    while (quarter_count > 0) {
-        if (_coin_inventory[QUARTER].size() == 0) break;
+    while (quarters > 0) {
         this->change_bin.push_back(_coin_inventory[QUARTER].back());
         _coin_inventory[QUARTER].pop_back();
-        --quarter_count;
+        --quarters;
     }
-    // If we ran out of quarters, supplement with 2 dimes and 1 nickel.
-    dime_count += quarter_count * 2;
-    nickel_count += quarter_count;
 
-    while (dime_count > 0) {
-        if (_coin_inventory[DIME].size() == 0) break;
+    while (dimes > 0) {
         this->change_bin.push_back(_coin_inventory[DIME].back());
         _coin_inventory[DIME].pop_back();
-        --dime_count;
+        --dimes;
     }
-    // If we run out of dimes, supplement with 2 nickels.
-    nickel_count += dime_count * 2;
 
-
-    while (nickel_count > 0) {
-        if (_coin_inventory[NICKEL].size() == 0) break;
+    while (nickels > 0) {
         this->change_bin.push_back(_coin_inventory[NICKEL].back());
         _coin_inventory[NICKEL].pop_back();
-        --nickel_count;
+        --nickels;
     }
-    // If we run out of nickels, supplement with 5 pennies.
-    penny_count += nickel_count * 5;
 
-    while (penny_count > 0) {
-        if (_coin_inventory[PENNY].size() == 0) break;
+    while (pennies > 0) {
         this->change_bin.push_back(_coin_inventory[PENNY].back());
         _coin_inventory[PENNY].pop_back();
-        --penny_count;
+        --pennies;
     }
 }
 
-vending_machine::vending_machine() {
+void vending_machine::_init() {
+    // Initialize internal values...
     _display_last_item_selected_price = false;
     _display_out_of_stock = false;
     _last_item_type_selected = 0;
-
-    // Fund the machine
-    for (unsigned int i=0; i<vending_machine::INITIAL_COINAGE_COUNT; ++i) {
-        _coin_inventory[vending_machine::PENNY].push_back(coin::parse("PENNY"));
-        _coin_inventory[vending_machine::NICKEL].push_back(coin::parse("NICKEL"));
-        _coin_inventory[vending_machine::DIME].push_back(coin::parse("DIME"));
-        _coin_inventory[vending_machine::QUARTER].push_back(coin::parse("QUARTER"));
-    }
-
-    // Stock the machine
-    for (unsigned int i=0; i<vending_machine::INITIAL_COINAGE_COUNT; ++i) {
-        _item_inventory[vending_machine::COLA].push_back(new vending_item());
-        _item_inventory[vending_machine::CHIPS].push_back(new vending_item());
-        _item_inventory[vending_machine::CANDY].push_back(new vending_item());
-    }
 
     // Set the item prices
     _item_prices[vending_machine::COLA] = 100;
     _item_prices[vending_machine::CHIPS] = 50;
     _item_prices[vending_machine::CANDY] = 65;
+}
+
+vending_machine::vending_machine() {
+    _init();
+
+    // Fund the machine with default allotments
+    for (unsigned int i=0; i<vending_machine::INITIAL_COINAGE_COUNT; ++i) {
+        _coin_inventory[vending_machine::QUARTER].push_back(coin::parse("QUARTER"));
+        _coin_inventory[vending_machine::DIME].push_back(coin::parse("DIME"));
+        _coin_inventory[vending_machine::NICKEL].push_back(coin::parse("NICKEL"));
+        // _coin_inventory[vending_machine::PENNY].push_back(coin::parse("PENNY"));
+    }
+
+    // Stock the machine with default allotments
+    for (unsigned int i=0; i<vending_machine::INITIAL_COINAGE_COUNT; ++i) {
+        _item_inventory[vending_machine::COLA].push_back(new vending_item());
+        _item_inventory[vending_machine::CHIPS].push_back(new vending_item());
+        _item_inventory[vending_machine::CANDY].push_back(new vending_item());
+    }
+}
+
+vending_machine::vending_machine(const unsigned int quarters, const unsigned int dimes, const unsigned int nickels, const unsigned int pennies) {
+    _init();
+
+    // Fund the machine with default allotments
+    for (unsigned int i=0; i<quarters; ++i) {
+        _coin_inventory[vending_machine::QUARTER].push_back(coin::parse("QUARTER"));
+    }
+    for (unsigned int i=0; i<dimes; ++i) {
+        _coin_inventory[vending_machine::DIME].push_back(coin::parse("DIME"));
+    }
+    for (unsigned int i=0; i<nickels; ++i) {
+        _coin_inventory[vending_machine::NICKEL].push_back(coin::parse("NICKEL"));
+    }
+    for (unsigned int i=0; i<pennies; ++i) {
+        _coin_inventory[vending_machine::PENNY].push_back(coin::parse("PENNY"));
+    }
+
+    // Stock the machine with default allotments
+    for (unsigned int i=0; i<vending_machine::INITIAL_COINAGE_COUNT; ++i) {
+        _item_inventory[vending_machine::COLA].push_back(new vending_item());
+        _item_inventory[vending_machine::CHIPS].push_back(new vending_item());
+        _item_inventory[vending_machine::CANDY].push_back(new vending_item());
+    }
 }
 
 string vending_machine::get_display() {
@@ -152,7 +220,21 @@ string vending_machine::get_display() {
         return "DEPOSITED: "+ to_string(_count_change_in_payment_storage());
     }
     else {
-        return "INSERT COIN";
+        bool needs_exact_change = false;
+        for (map<item_type, vector<vending_item*> >::const_iterator it = _item_inventory.begin(); it != _item_inventory.end(); it++) {
+            if (it->second.size() > 0) {
+                if (! _can_make_change(it->first)) {
+                    needs_exact_change = true;
+                }
+            }
+        }
+
+        if (needs_exact_change) {
+            return "EXACT CHANGE ONLY";
+        }
+        else {
+            return "INSERT COIN";
+        }
     }
 }
 
@@ -295,4 +377,20 @@ void vending_machine::withdraw_change(list<coin*>* wallet) {
         wallet->push_back(*it);
     }
     this->change_bin.clear();
+}
+
+list<vending_item*> vending_machine::withdraw_items() {
+    list<vending_item*> bag;
+    for (list<vending_item*>::iterator it = this->item_bin.begin(); it != this->item_bin.end(); it++) {
+        bag.push_back(*it);
+    }
+    this->item_bin.clear();
+    return bag;
+}
+
+void vending_machine::withdraw_items(list<vending_item*>* bag) {
+    for (list<vending_item*>::iterator it = this->item_bin.begin(); it != this->item_bin.end(); it++) {
+        bag->push_back(*it);
+    }
+    this->item_bin.clear();
 }
