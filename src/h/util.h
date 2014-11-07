@@ -3,7 +3,9 @@
 
 #include <string>
 
-std::string to_upper_case(const std::string& str);
-std::string to_string(const unsigned int);
+namespace util {
+    std::string to_upper_case(const std::string& str);
+    std::string to_string(const unsigned int);
+}
 
 #endif

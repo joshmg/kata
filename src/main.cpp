@@ -19,16 +19,16 @@ enum item_type {
 typedef map< coin_type, vector<coin*> > wallet;
 
 coin_type coin_to_type(const coin& c) {
-    if (to_upper_case(c.get_name()) == "PENNY") {
+    if (util::to_upper_case(c.get_name()) == "PENNY") {
         return PENNY;
     }
-    else if (to_upper_case(c.get_name()) == "NICKEL") {
+    else if (util::to_upper_case(c.get_name()) == "NICKEL") {
         return NICKEL;
     }
-    else if (to_upper_case(c.get_name()) == "DIME") {
+    else if (util::to_upper_case(c.get_name()) == "DIME") {
         return DIME;
     }
-    else if (to_upper_case(c.get_name()) == "QUARTER") {
+    else if (util::to_upper_case(c.get_name()) == "QUARTER") {
         return QUARTER;
     }
     else {
@@ -36,16 +36,16 @@ coin_type coin_to_type(const coin& c) {
     }
 }
 coin_type string_to_coin_type(const string& str) {
-    if (to_upper_case(str) == "PENNY") {
+    if (util::to_upper_case(str) == "PENNY") {
         return PENNY;
     }
-    else if (to_upper_case(str) == "NICKEL") {
+    else if (util::to_upper_case(str) == "NICKEL") {
         return NICKEL;
     }
-    else if (to_upper_case(str) == "DIME") {
+    else if (util::to_upper_case(str) == "DIME") {
         return DIME;
     }
-    else if (to_upper_case(str) == "QUARTER") {
+    else if (util::to_upper_case(str) == "QUARTER") {
         return QUARTER;
     }
     else {
@@ -53,13 +53,13 @@ coin_type string_to_coin_type(const string& str) {
     }
 }
 item_type string_to_item_type(const string& str) {
-    if (to_upper_case(str) == "COLA") {
+    if (util::to_upper_case(str) == "COLA") {
         return COLA;
     }
-    else if (to_upper_case(str) == "CHIPS") {
+    else if (util::to_upper_case(str) == "CHIPS") {
         return CHIPS;
     }
-    else if (to_upper_case(str) == "CANDY") {
+    else if (util::to_upper_case(str) == "CANDY") {
         return CANDY;
     }
     else {

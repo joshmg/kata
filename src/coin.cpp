@@ -6,7 +6,7 @@
 using namespace std;
 
 coin* coin::parse(const string& str) {
-    string coin_type = to_upper_case(str);
+    string coin_type = util::to_upper_case(str);
 
     coin* c = 0;
 

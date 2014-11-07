@@ -13,16 +13,16 @@ using namespace std;
 
 
 vending_machine::coin_type vending_machine::_coin_to_type(const coin& c) {
-    if (to_upper_case(c.get_name()) == "PENNY") {
+    if (util::to_upper_case(c.get_name()) == "PENNY") {
         return PENNY;
     }
-    else if (to_upper_case(c.get_name()) == "NICKEL") {
+    else if (util::to_upper_case(c.get_name()) == "NICKEL") {
         return NICKEL;
     }
-    else if (to_upper_case(c.get_name()) == "DIME") {
+    else if (util::to_upper_case(c.get_name()) == "DIME") {
         return DIME;
     }
-    else if (to_upper_case(c.get_name()) == "QUARTER") {
+    else if (util::to_upper_case(c.get_name()) == "QUARTER") {
         return QUARTER;
     }
     else {
@@ -34,16 +34,17 @@ string vending_machine::_item_type_to_string(const item_type type) {
         case COLA:  return "Cola";
         case CHIPS: return "Chips";
         case CANDY: return "Candy";
+        default: return "";
     }
 }
 vending_machine::item_type vending_machine::_string_to_item_type(const string& str) {
-    if (to_upper_case(str) == "COLA") {
+    if (util::to_upper_case(str) == "COLA") {
         return COLA;
     }
-    else if (to_upper_case(str) == "CHIPS") {
+    else if (util::to_upper_case(str) == "CHIPS") {
         return CHIPS;
     }
-    else if (to_upper_case(str) == "CANDY") {
+    else if (util::to_upper_case(str) == "CANDY") {
         return CANDY;
     }
     else {
@@ -209,7 +210,7 @@ string vending_machine::get_display() {
     if (_display_last_item_selected_price && _last_item_type_selected != 0) {
         _display_last_item_selected_price = false;
 
-        return "PRICE: "+ to_string(_item_prices.find(*_last_item_type_selected)->second);
+        return "PRICE: "+ util::to_string(_item_prices.find(*_last_item_type_selected)->second);
     }
     if (_display_out_of_stock && _last_item_type_selected != 0) {
         _display_out_of_stock = false;
@@ -217,7 +218,7 @@ string vending_machine::get_display() {
         return "OUT OF STOCK: "+ _item_type_to_string(_item_prices.find(*_last_item_type_selected)->first);
     }
     else if (_payment_storage.size() > 0) {
-        return "DEPOSITED: "+ to_string(_count_change_in_payment_storage());
+        return "DEPOSITED: "+ util::to_string(_count_change_in_payment_storage());
     }
     else {
         bool needs_exact_change = false;
